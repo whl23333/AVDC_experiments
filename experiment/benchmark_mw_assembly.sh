@@ -1,0 +1,2 @@
+CUDA_VISIBLE_DEVICES=$1 accelerate launch benchmark_mw.py --env_name "assembly-v2-goal-observable" --n_exps 25 --ckpt_dir "../ckpts/AVDC_assembly" --milestone 8 --result_root "../results/AVDC_assembly"
+python org_results_mw.py --results_root "../results/AVDC_assembly"

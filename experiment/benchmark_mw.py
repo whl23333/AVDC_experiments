@@ -12,7 +12,7 @@ import cv2
 import imageio
 import json
 import os
-from flowdiffusion.inference_utils import get_video_model, pred_video
+from flowdiffusion.inference_utils import get_video_model, pred_video, get_video_model_change, get_video_model_GPT, get_video_model_GPT2, get_video_model_GPT3
 import random
 import torch
 from argparse import ArgumentParser
@@ -48,6 +48,10 @@ def run(args):
 
 
     video_model = get_video_model(ckpts_dir=args.ckpt_dir, milestone=args.milestone)
+    # video_model = get_video_model_change(ckpts_dir=args.ckpt_dir, milestone=args.milestone)
+    # video_model = get_video_model_GPT(ckpts_dir=args.ckpt_dir, milestone=args.milestone)
+    # video_model = get_video_model_GPT2(ckpts_dir=args.ckpt_dir, milestone=args.milestone)
+    # video_model = get_video_model_GPT3(ckpts_dir=args.ckpt_dir, milestone=args.milestone)
     flow_model = get_flow_model()
 
     try:
@@ -71,33 +75,33 @@ def run(args):
         rewards = []
         replans_counter = {i: 0 for i in range(max_replans + 1)}
         for seed in tqdm(range(n_exps)):
-            try: 
-                env = benchmark_env(seed=seed)
-                
-                obs = env.reset()
-                policy = MyPolicy_CL(env, env_name, camera, video_model, flow_model, max_replans=max_replans)
+            # try: 
+            env = benchmark_env(seed=seed)
+            
+            obs = env.reset()
+            policy = MyPolicy_CL(env, env_name, camera, video_model, flow_model, max_replans=max_replans)
 
-                # os.makedirs(f'{result_root}/plans/{env_name}', exist_ok=True)
-                # imageio.mimsave(f'{result_root}/plans/{env_name}/{camera}_{seed}.mp4', images.transpose(0, 2, 3, 1))
+            # os.makedirs(f'{result_root}/plans/{env_name}', exist_ok=True)
+            # imageio.mimsave(f'{result_root}/plans/{env_name}/{camera}_{seed}.mp4', images.transpose(0, 2, 3, 1))
 
-                images, _, episode_return = collect_video(obs, env, policy, camera_name=camera, resolution=resolution)
-                rewards.append(episode_return / len(images))
+            images, _, episode_return = collect_video(obs, env, policy, camera_name=camera, resolution=resolution)
+            rewards.append(episode_return / len(images))
 
-                used_replans = max_replans - policy.replans
-                
-                ### save sample video
-                os.makedirs(f'{result_root}/videos/{env_name}', exist_ok=True)
-                imageio.mimsave(f'{result_root}/videos/{env_name}/{camera}_{seed}.mp4', images)
-                
-                print("test eplen: ", len(images))
-                if len(images) <= 500:
-                    success += 1
-                    replans_counter[used_replans] += 1
-                    print("success, used replans: ", used_replans)
-            except Exception as e:
-                print(e)
-                print("something went wrong, skipping this seed")
-                continue
+            used_replans = max_replans - policy.replans
+            
+            ### save sample video
+            os.makedirs(f'{result_root}/videos/{env_name}', exist_ok=True)
+            imageio.mimsave(f'{result_root}/videos/{env_name}/{camera}_{seed}.mp4', images)
+            
+            print("test eplen: ", len(images))
+            if len(images) <= 500:
+                success += 1
+                replans_counter[used_replans] += 1
+                print("success, used replans: ", used_replans)
+            # except Exception as e:
+            #     print(e)
+            #     print("something went wrong, skipping this seed")
+            #     continue
         rewards = rewards + [0] * (n_exps - len(rewards))
         reward_means.append(np.mean(rewards))
         reward_stds.append(np.std(rewards))

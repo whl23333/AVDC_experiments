@@ -74,7 +74,7 @@ class ProxyPolicy(Policy):
         return subgoals
 
     def calculate_next_plan(self):
-        image, depth = self.env.render(resolution=self.resolution, depth=True, camera_name=self.camera)
+        image, depth = self.env.render(resolution=self.resolution, depth=True, camera_name=self.camera, offscreen=True)
         cmat = get_cmat(self.env, self.camera, resolution=self.resolution)
         seg = get_seg(self.env, resolution=self.resolution, camera=self.camera, seg_ids=self.seg_ids)
 
